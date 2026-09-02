@@ -44,24 +44,11 @@ RegisterNetEvent('grp-lockdown:start', function(index)
     if not v
         or not nearTarget(src, v.coords)
         or not jobAllowed(src, v.jobs)
-        or Active[v.shutter]
-    then return end
-
-    local id = v.shutter
-    Tokens[id] = (Tokens[id] or 0) + 1
-    local token = Tokens[id]
-
-    setState(id, true)
-
-    if exports.samy_shutters:IsShutterOpen(id) then
-        toggle(id, v.speed)
+    then
+        return
     end
 
-    SetTimeout((v.time or Config.LockdownTime) * 60000, function()
-        if Active[id] and Tokens[id] == token then
-            setState(id, false)
-        end
-    end)
+    startLockdown(v)
 end)
 
 RegisterNetEvent('grp-lockdown:open', function(index)
@@ -80,3 +67,34 @@ RegisterNetEvent('grp-lockdown:open', function(index)
         toggle(v.shutter, v.speed)
     end
 end)
+
+local function startLockdown(v)
+    if not v or Active[v.shutter] then return false end
+
+    local id = v.shutter
+
+    Tokens[id] = (Tokens[id] or 0) + 1
+    local token = Tokens[id]
+
+    setState(id, true)
+
+    if exports.samy_shutters:IsShutterOpen(id) then
+        toggle(id, v.speed)
+    end
+
+    SetTimeout((v.time or Config.LockdownTime) * 60000, function()
+        if Active[id] and Tokens[id] == token then
+            setState(id, false)
+        end
+    end)
+
+    return true
+end
+--Event generation for electus heist creator use
+for _, v in ipairs(Config.Locations) do
+    local shutter = v.shutter
+
+    RegisterNetEvent(('grp-lockdown:heist:%s'):format(shutter), function()
+        startLockdown(v)
+    end)
+end

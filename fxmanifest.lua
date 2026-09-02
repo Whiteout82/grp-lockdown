@@ -3,7 +3,7 @@ game 'gta5'
 
 author 'GRP'
 description 'Lockdown control for LEOs for Samy Shutters'
-version '1.1.0'
+version '1.1.1'
 
 lua54 'yes'
 
